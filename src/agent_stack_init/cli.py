@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import stat
+import sys
 import zipfile
+from datetime import datetime
 from pathlib import Path
 
 from . import __version__
@@ -145,6 +148,54 @@ def install_codex_skill(args: argparse.Namespace) -> int:
     return 0
 
 
+def install_claude_code_skill(args: argparse.Namespace) -> int:
+    claude_home = Path(args.claude_home).expanduser()
+    target = claude_home / "skills" / "agent-stack-init"
+    if target.exists():
+        shutil.rmtree(target)
+    (target / "agents").mkdir(parents=True, exist_ok=True)
+    (target / "SKILL.md").write_text(skill_text(), encoding="utf-8")
+    (target / "agents" / "openai.yaml").write_text(openai_yaml(), encoding="utf-8")
+    print(f"Installed Claude Code skill to {target}")
+    print("Restart Claude Code or start a new session so the skill metadata is loaded.")
+    return 0
+
+
+def default_desktop_config_path() -> Path:
+    if sys.platform == "darwin":
+        return Path("~/Library/Application Support/Claude/claude_desktop_config.json").expanduser()
+    if sys.platform.startswith("win"):
+        return Path("~/AppData/Roaming/Claude/claude_desktop_config.json").expanduser()
+    return Path("~/.config/Claude/claude_desktop_config.json").expanduser()
+
+
+def install_claude_desktop(args: argparse.Namespace) -> int:
+    config_path = Path(args.config).expanduser() if args.config else default_desktop_config_path()
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if config_path.exists():
+        data = json.loads(config_path.read_text(encoding="utf-8") or "{}")
+        if args.backup:
+            stamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            backup_path = config_path.with_suffix(config_path.suffix + f".bak-{stamp}")
+            shutil.copy2(config_path, backup_path)
+            print(f"Backed up existing Claude Desktop config to {backup_path}")
+    else:
+        data = {}
+
+    servers = data.setdefault("mcpServers", {})
+    servers["agent-stack-init"] = {
+        "command": sys.executable,
+        "args": ["-m", "agent_stack_init.mcp_server"],
+        "env": {},
+    }
+
+    config_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    print(f"Installed Claude Desktop MCP server config at {config_path}")
+    print("Restart Claude Desktop so it loads the agent-stack-init tools.")
+    return 0
+
+
 def claude_command_init(bootstrap: Path) -> str:
     return f"""---
 description: Generate or refresh the commented Claude/Codex agent configuration stack for the current project.
@@ -239,7 +290,9 @@ def init_project(args: argparse.Namespace) -> int:
 
 def install_all(args: argparse.Namespace) -> int:
     install_codex_skill(args)
+    install_claude_code_skill(args)
     install_claude_commands(args)
+    install_claude_desktop(args)
     return 0
 
 
@@ -270,10 +323,27 @@ def build_parser() -> argparse.ArgumentParser:
     claude.add_argument("--with-init-alias", action="store_true")
     claude.set_defaults(func=install_claude_commands)
 
+    claude_skill = subparsers.add_parser(
+        "install-claude-code-skill", help="Install filesystem Claude Code skill."
+    )
+    claude_skill.add_argument("--claude-home", default="~/.claude")
+    claude_skill.set_defaults(func=install_claude_code_skill)
+
+    desktop = subparsers.add_parser(
+        "install-claude-desktop",
+        help="Install the agent-stack-init MCP server into Claude Desktop config.",
+    )
+    desktop.add_argument("--config", default=None, help="Path to claude_desktop_config.json.")
+    desktop.add_argument("--no-backup", dest="backup", action="store_false")
+    desktop.set_defaults(backup=True, func=install_claude_desktop)
+
     all_cmd = subparsers.add_parser("install", help="Install Codex skill and Claude commands.")
     all_cmd.add_argument("--codex-home", default="~/.codex")
     all_cmd.add_argument("--claude-home", default="~/.claude")
     all_cmd.add_argument("--with-init-alias", action="store_true")
+    all_cmd.add_argument("--config", default=None, help="Path to claude_desktop_config.json.")
+    all_cmd.add_argument("--no-backup", dest="backup", action="store_false")
+    all_cmd.set_defaults(backup=True)
     all_cmd.set_defaults(func=install_all)
 
     chat = subparsers.add_parser(

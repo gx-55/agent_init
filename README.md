@@ -9,6 +9,8 @@ It supports three surfaces:
 
 - Claude chat Skill: generates the boilerplate as text/artifacts in the chat box.
 - Claude Code commands: runs from Claude Code with `/agent-stack-init`.
+- Claude Code Skill: installs into local Claude Code skill config.
+- Claude Desktop MCP: exposes `agent-stack-init` as local Desktop tools.
 - Codex skill/CLI: installs and scaffolds from a terminal or Codex session.
 
 ## What Was Done
@@ -119,11 +121,22 @@ python3 skills/agent-stack-init/scripts/bootstrap_agent_config.py --target .
 
 ## Install Commands
 
-After package install, install both Codex and Claude Code integrations:
+After package install, install Codex and Claude Code local integrations:
 
 ```bash
 agent-stack-init install
 ```
+
+This writes local filesystem config:
+
+- `~/.codex/skills/agent-stack-init`
+- `~/.claude/skills/agent-stack-init`
+- `~/.claude/commands/agent-stack-init.md`
+- `~/.claude/commands/new-agent-project.md`
+- `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS
+
+The Claude Desktop config adds an MCP server named `agent-stack-init`. Restart
+Claude Desktop after installing.
 
 Install or refresh the Codex skill:
 
@@ -131,10 +144,28 @@ Install or refresh the Codex skill:
 agent-stack-init install-codex-skill
 ```
 
+Install or refresh the Claude Code skill:
+
+```bash
+agent-stack-init install-claude-code-skill
+```
+
 Install or refresh Claude Code user commands:
 
 ```bash
 agent-stack-init install-claude-commands
+```
+
+Install or refresh the Claude Desktop MCP server only:
+
+```bash
+agent-stack-init install-claude-desktop
+```
+
+Use a custom Desktop config path:
+
+```bash
+agent-stack-init install-claude-desktop --config /path/to/claude_desktop_config.json
 ```
 
 The installer intentionally skips a global `/init` alias because Claude Code may
@@ -152,6 +183,10 @@ for source-checkout workflows.
 Claude chat Skills are different from Claude Code slash commands. The chat Skill
 does not run commands on your machine; it teaches Claude chat how to generate the
 same boilerplate as copyable text or downloadable artifacts.
+
+Important: Claude.ai chat Skills live in your Claude account, not in local
+`~/.claude` config. Local installers cannot register a custom Skill in the Claude
+web UI. Build the zip, then upload and enable it in Claude chat's Skills UI.
 
 Build the uploadable Skill zip:
 
@@ -174,6 +209,30 @@ claude-chat-skill/agent-stack-init/SKILL.md
 Upload the zip wherever your Claude chat plan exposes custom Skills. Keep
 `/agent-stack-init` for Claude Code; use the chat Skill when you want Claude to
 generate the files in the text box.
+
+## Claude Desktop MCP Tools
+
+Claude Desktop can use local tools through MCP. `agent-stack-init install`
+updates Claude Desktop's config with this server:
+
+```json
+{
+  "mcpServers": {
+    "agent-stack-init": {
+      "command": "/path/to/python",
+      "args": ["-m", "agent_stack_init.mcp_server"],
+      "env": {}
+    }
+  }
+}
+```
+
+Available Desktop tools:
+
+- `init_agent_stack`: scaffold the config stack into a local project folder.
+- `build_claude_chat_skill`: build the uploadable Claude chat Skill zip.
+
+After installing or changing the config, quit and restart Claude Desktop.
 
 ## Generated Stack
 
