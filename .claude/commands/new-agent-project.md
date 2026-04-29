@@ -1,7 +1,6 @@
 ---
 description: Create a new project folder and immediately add the commented Claude/Codex agent configuration stack.
 argument-hint: <project-folder> [project description]
-allowed-tools: Bash(mkdir:*), Bash(python3:*), Read, Grep, Glob, Edit, Write
 ---
 
 Create a new project and install the agent configuration stack.

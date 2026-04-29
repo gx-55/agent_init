@@ -1,7 +1,6 @@
 ---
 description: Init-style alias for the agent configuration stack. Use /project:agent-stack-init if /init is reserved.
 argument-hint: [optional project description]
-allowed-tools: Bash(python3 .claude/tools/bootstrap_agent_config.py:*), Read, Grep, Glob, Edit, Write
 ---
 
 Run the same workflow as `agent-stack-init`.

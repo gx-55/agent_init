@@ -417,7 +417,6 @@ def command_agent_stack_init() -> str:
         ---
         description: Generate or refresh the commented Claude/Codex agent configuration stack for this project.
         argument-hint: [optional project description]
-        allowed-tools: Bash(python3 .claude/tools/bootstrap_agent_config.py:*), Read, Grep, Glob, Edit, Write
         ---
 
         Initialize this repository with the local agent configuration stack.
@@ -442,7 +441,6 @@ def command_init_alias() -> str:
         ---
         description: Init-style alias for the agent configuration stack. Use /project:agent-stack-init if /init is reserved.
         argument-hint: [optional project description]
-        allowed-tools: Bash(python3 .claude/tools/bootstrap_agent_config.py:*), Read, Grep, Glob, Edit, Write
         ---
 
         Run the same workflow as `agent-stack-init`.
@@ -462,7 +460,6 @@ def command_new_agent_project() -> str:
         ---
         description: Create a new project folder and immediately add the commented Claude/Codex agent configuration stack.
         argument-hint: <project-folder> [project description]
-        allowed-tools: Bash(mkdir:*), Bash(python3:*), Read, Grep, Glob, Edit, Write
         ---
 
         Create a new project and install the agent configuration stack.

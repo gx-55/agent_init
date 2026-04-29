@@ -1,7 +1,6 @@
 ---
 description: Generate or refresh the commented Claude/Codex agent configuration stack for this project.
 argument-hint: [optional project description]
-allowed-tools: Bash(python3 .claude/tools/bootstrap_agent_config.py:*), Read, Grep, Glob, Edit, Write
 ---
 
 Initialize this repository with the local agent configuration stack.

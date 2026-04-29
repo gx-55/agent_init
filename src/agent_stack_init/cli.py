@@ -64,7 +64,6 @@ def claude_command_init(bootstrap: Path) -> str:
     return f"""---
 description: Generate or refresh the commented Claude/Codex agent configuration stack for the current project.
 argument-hint: [optional project description]
-allowed-tools: Bash(agent-stack-init init:*), Bash(python3 {bootstrap}:*), Read, Grep, Glob, Edit, Write
 ---
 
 Initialize this repository with the reusable agent configuration stack.
@@ -86,7 +85,6 @@ def claude_command_new_project() -> str:
     return """---
 description: Create a new project folder and immediately add the commented Claude/Codex agent configuration stack.
 argument-hint: <project-folder> [project description]
-allowed-tools: Bash(mkdir:*), Bash(agent-stack-init init:*), Read, Grep, Glob, Edit, Write
 ---
 
 Create a new project folder and install the reusable agent configuration stack.
@@ -108,7 +106,6 @@ def claude_command_alias() -> str:
     return """---
 description: Init-style alias for the agent configuration stack. Use only if your Claude Code setup does not reserve /init.
 argument-hint: [optional project description]
-allowed-tools: Bash(agent-stack-init init:*), Read, Grep, Glob, Edit, Write
 ---
 
 Run the same workflow as `/agent-stack-init`. If this conflicts with a built-in command, use `/agent-stack-init` instead.
