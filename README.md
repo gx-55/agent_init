@@ -5,6 +5,12 @@ It scaffolds a commented agent configuration stack so new repos start with memor
 rules, subagents, hooks, slash commands, MCP examples, and headless automation
 examples already in place.
 
+It supports three surfaces:
+
+- Claude chat Skill: generates the boilerplate as text/artifacts in the chat box.
+- Claude Code commands: runs from Claude Code with `/agent-stack-init`.
+- Codex skill/CLI: installs and scaffolds from a terminal or Codex session.
+
 ## What Was Done
 
 - Created the reusable Codex skill at `skills/agent-stack-init/`.
@@ -39,44 +45,48 @@ From Codex, start a new session and ask naturally:
 Initialize this repo with the agent stack.
 ```
 
+From Claude chat, use the chat Skill and ask:
+
+```text
+Generate an agent stack for a TypeScript retrieval service.
+```
+
 ## Install From Another Endpoint
 
 Best option after pushing this repo to GitHub or another git host:
 
 ```bash
-pipx install "git+https://github.com/YOUR_ORG/agent-stack-init.git"
+pipx install "git+https://github.com/gx-55/agent_init.git"
 agent-stack-init install
 ```
 
 Without `pipx`:
 
 ```bash
-python3 -m pip install --user "git+https://github.com/YOUR_ORG/agent-stack-init.git"
+python3 -m pip install --user "git+https://github.com/gx-55/agent_init.git"
 agent-stack-init install
 ```
 
 Run without permanently installing the CLI:
 
 ```bash
-uvx --from "git+https://github.com/YOUR_ORG/agent-stack-init.git" agent-stack-init install
+uvx --from "git+https://github.com/gx-55/agent_init.git" agent-stack-init install
 ```
 
 Clone and install:
 
 ```bash
-git clone https://github.com/YOUR_ORG/agent-stack-init.git
-cd agent-stack-init
+git clone https://github.com/gx-55/agent_init.git
+cd agent_init
 ./install.sh
 ```
 
 Remote install script pattern:
 
 ```bash
-export AGENT_STACK_INIT_REPO_URL="https://github.com/YOUR_ORG/agent-stack-init.git"
-curl -fsSL https://raw.githubusercontent.com/YOUR_ORG/agent-stack-init/main/install.sh | bash
+export AGENT_STACK_INIT_REPO_URL="https://github.com/gx-55/agent_init.git"
+curl -fsSL https://raw.githubusercontent.com/gx-55/agent_init/main/install.sh | bash
 ```
-
-Replace `YOUR_ORG/agent-stack-init` with the endpoint where you publish this repo.
 
 ## Manual Script Use
 
@@ -136,6 +146,34 @@ agent-stack-init install-claude-commands --with-init-alias
 
 The original shell installers are still available under `skills/agent-stack-init/scripts/`
 for source-checkout workflows.
+
+## Claude Chat Skill
+
+Claude chat Skills are different from Claude Code slash commands. The chat Skill
+does not run commands on your machine; it teaches Claude chat how to generate the
+same boilerplate as copyable text or downloadable artifacts.
+
+Build the uploadable Skill zip:
+
+```bash
+agent-stack-init build-chat-skill
+```
+
+Default output:
+
+```text
+dist/agent-stack-init-claude-chat-skill.zip
+```
+
+Source version:
+
+```text
+claude-chat-skill/agent-stack-init/SKILL.md
+```
+
+Upload the zip wherever your Claude chat plan exposes custom Skills. Keep
+`/agent-stack-init` for Claude Code; use the chat Skill when you want Claude to
+generate the files in the text box.
 
 ## Generated Stack
 

@@ -45,6 +45,7 @@ python3 skills/agent-stack-init/scripts/bootstrap_agent_config.py --target . --f
 - `.claude/mcp.example.jsonc`: small commented five-server MCP template.
 - `.github/workflows/claude-nightly-evals.example.yml`: commented headless/nightly automation example.
 - `docs/agent-stack.md`: short guide for trimming and adapting the stack.
+- `claude-chat-skill/agent-stack-init/SKILL.md`: Claude chat Skill source for generating boilerplate in the chat UI.
 
 ## After Running
 
@@ -62,5 +63,6 @@ Tell the user to edit the comments before relying on the setup. Emphasize these 
 - Claude Code user commands: run `scripts/install_claude_commands.sh` from this skill source to install `/agent-stack-init` and `/new-agent-project`.
 - Claude Code project commands: generated files under `.claude/commands/` can be invoked as project slash commands, commonly `/project:agent-stack-init` or `/project:new-agent-project`.
 - Built-in `/init`: do not rely on overriding it. If the local Claude Code version supports a project `init` command, `.claude/commands/init.md` provides an init-style prompt; otherwise use `/agent-stack-init` or `/project:agent-stack-init`.
+- Claude chat Skill: build `dist/agent-stack-init-claude-chat-skill.zip` with `agent-stack-init build-chat-skill`, then upload the zip in the Claude chat Skills UI if available on the user's plan.
 
 Read `references/config-stack.md` only when the user wants the rationale behind the layers or asks how to adapt the generated files.
