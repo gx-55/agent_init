@@ -1,0 +1,48 @@
+name: claude-nightly-evals
+
+on:
+  # Enable after secrets, hooks, and allowlists are reviewed.
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "0 7 * * *"
+
+jobs:
+  run-evals-and-open-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+
+      - name: Install Claude Code
+        run: npm i -g @anthropic-ai/claude-code@latest
+
+      - name: Run nightly eval and draft PR
+        id: claude
+        run: |
+          set -o pipefail
+          claude -p \
+            --bare \
+            --output-format stream-json \
+            --allowedTools "Bash(uv run:*),Read,Grep,Glob,Write,Edit,mcp__github__*" \
+            --append-system-prompt "Run evals, make the smallest safe fix, and open a draft PR if regressions appear." \
+            "Run the citation eval suite. If any case regresses, implement the minimal fix and open a draft PR against main." \
+          | tee claude.ndjson
+
+          if grep -q '"permissionDecision":"defer"' claude.ndjson; then
+            echo "deferred=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resume after deferred approval
+        if: steps.claude.outputs.deferred == 'true'
+        run: |
+          SESSION_ID="$(jq -r 'select(.type=="deferred") | .session_id' claude.ndjson | head -n1)"
+          claude --resume "$SESSION_ID" \
+            --append-system-prompt "Approved. Continue." \
+            --output-format stream-json

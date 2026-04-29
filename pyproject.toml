@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=58", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-stack-init"
+version = "0.1.0"
+description = "Bootstrap commented Claude/Codex agent configuration stacks for projects."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Agent Stack Init Maintainers" }]
+license = { text = "MIT" }
+keywords = ["codex", "claude", "agents", "bootstrap", "developer-tools"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "License :: OSI Approved :: MIT License",
+  "Environment :: Console",
+  "Topic :: Software Development :: Code Generators",
+]
+dependencies = []
+
+[project.scripts]
+agent-stack-init = "agent_stack_init.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,42 @@
+{
+  // Copy this file to the Claude settings location your team uses after review.
+  // JSON itself does not allow comments, so keep this file as documentation and
+  // use settings.example.json as the machine-readable version.
+  "hooks": {
+    "PreToolUse": [
+      {
+        // Runs before Bash tool calls. The script below defers protected pushes.
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/gate_git_push.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        // Keep this formatter quiet and non-blocking. Replace with your formatter.
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run ruff format $CLAUDE_TOOL_FILE_PATH >/dev/null 2>&1 || true"
+          }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        // Audit denied operations. Ensure jq is installed before enabling.
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mkdir -p .claude/logs && jq -c . >> .claude/logs/denied.jsonl"
+          }
+        ]
+      }
+    ]
+  }
+}
