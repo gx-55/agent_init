@@ -6,7 +6,6 @@ import contextlib
 import io
 import json
 import sys
-import traceback
 from typing import Any
 
 from . import __version__
@@ -102,12 +101,14 @@ def handle(message: dict[str, Any]) -> None:
         if not has_valid_id:
             log("Ignoring initialize request without a valid JSON-RPC id.")
             return
+        params = message.get("params") or {}
+        protocol_version = params.get("protocolVersion") or "2025-11-25"
         send(
             {
                 "jsonrpc": "2.0",
                 "id": msg_id,
                 "result": {
-                    "protocolVersion": "2024-11-05",
+                    "protocolVersion": protocol_version,
                     "capabilities": {"tools": {}},
                     "serverInfo": {"name": "agent-stack-init", "version": __version__},
                 },
@@ -160,7 +161,6 @@ def main() -> int:
                 log(f"Ignoring non-object MCP message: {decoded!r}")
         except Exception as exc:  # pragma: no cover - defensive server boundary
             log(f"agent-stack-init MCP server ignored invalid input: {exc}")
-            log(traceback.format_exc())
     return 0
 
 
