@@ -65,6 +65,6 @@ pipx install "git+https://github.com/OWNER/REPO.git"
 agent-stack-init install
 ```
 
-Explain that `agent-stack-init install` installs persistent local Codex and
-Claude Code integrations, while `agent-stack-init init --target .` initializes a
-specific project.
+Explain that `agent-stack-init install` installs persistent local Codex, Claude
+Code, and Claude Desktop integrations, while `agent-stack-init init --target .`
+initializes a specific project.

@@ -7,7 +7,6 @@ import json
 import shutil
 import stat
 import sys
-import zipfile
 from datetime import datetime
 from pathlib import Path
 
@@ -52,6 +51,9 @@ default_prompt: Set up an editable agent configuration stack for this project.
 
 
 def claude_chat_skill_text() -> str:
+    source = Path(__file__).resolve().parents[2] / "CLAUDE_CHAT_SKILL.md"
+    if source.exists():
+        return source.read_text(encoding="utf-8")
     return """---
 name: agent-stack-init
 description: Generate a complete commented Claude Code and Codex agent configuration stack in chat. Use when the user asks to initialize a project, create agent boilerplate, set up CLAUDE.md, path-scoped rules, custom subagents, hooks, MCP examples, Claude Code commands, Codex skills, or packageable setup files from the Claude chat text box.
@@ -119,19 +121,14 @@ pipx install "git+https://github.com/OWNER/REPO.git"
 agent-stack-init install
 ```
 
-Explain that `agent-stack-init install` installs persistent local Codex and
-Claude Code integrations, while `agent-stack-init init --target .` initializes a
-specific project.
+Explain that `agent-stack-init install` installs persistent local Codex, Claude
+Code, and Claude Desktop integrations, while `agent-stack-init init --target .`
+initializes a specific project.
 """
 
 
-def build_chat_skill(args: argparse.Namespace) -> int:
-    output = Path(args.out).expanduser()
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr("agent-stack-init/SKILL.md", claude_chat_skill_text())
-    print(f"Wrote Claude chat skill archive to {output}")
-    print("Upload this zip wherever your Claude chat plan exposes custom Skills.")
+def print_chat_skill(args: argparse.Namespace) -> int:
+    print(claude_chat_skill_text(), end="")
     return 0
 
 
@@ -346,15 +343,8 @@ def build_parser() -> argparse.ArgumentParser:
     all_cmd.set_defaults(backup=True)
     all_cmd.set_defaults(func=install_all)
 
-    chat = subparsers.add_parser(
-        "build-chat-skill", help="Build a Claude chat Skill zip archive."
-    )
-    chat.add_argument(
-        "--out",
-        default="dist/agent-stack-init-claude-chat-skill.zip",
-        help="Output zip path.",
-    )
-    chat.set_defaults(func=build_chat_skill)
+    chat = subparsers.add_parser("print-chat-skill", help="Print the Claude chat Skill file.")
+    chat.set_defaults(func=print_chat_skill)
 
     return parser
 

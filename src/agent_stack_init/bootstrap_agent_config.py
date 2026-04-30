@@ -538,23 +538,22 @@ def guide(project_name: str) -> str:
         - Use `/project:new-agent-project` when starting a new folder from Claude Code.
         - `.claude/commands/init.md` is an init-style alias, but many Claude Code setups reserve `/init` as a built-in command. Prefer the explicit project command when in doubt.
 
-        To install global Claude Code user commands from the skill source repo:
+        To install global Claude Code user commands from the package:
 
         ```bash
-        skills/agent-stack-init/scripts/install_claude_commands.sh
+        agent-stack-init install-claude-commands
         ```
 
-        This installs `/agent-stack-init` and `/new-agent-project`. Re-run that script with
+        This installs `/agent-stack-init` and `/new-agent-project`. Re-run with
         `--with-init-alias` only if you intentionally want to add a user `/init` alias.
 
         ## Codex Skill Install
 
         To make natural language requests trigger this bootstrap workflow in future Codex
-        sessions, install the `agent-stack-init` skill source into Codex's skills
-        directory. From the repo that contains the skill source, run:
+        sessions, install the `agent-stack-init` skill into Codex's skills directory:
 
         ```bash
-        skills/agent-stack-init/scripts/install_codex_skill.sh
+        agent-stack-init install-codex-skill
         ```
 
         ## Operating Rule

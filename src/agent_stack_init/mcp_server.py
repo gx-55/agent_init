@@ -7,12 +7,11 @@ import io
 import json
 import sys
 import traceback
-from pathlib import Path
 from typing import Any
 
 from . import __version__
 from . import bootstrap_agent_config
-from .cli import build_chat_skill
+from .cli import print_chat_skill
 
 
 def send(message: dict[str, Any]) -> None:
@@ -60,17 +59,9 @@ def tool_schemas() -> list[dict[str, Any]]:
             },
         },
         {
-            "name": "build_claude_chat_skill",
-            "description": "Build the uploadable Claude chat Skill zip for agent-stack-init.",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "out": {
-                        "type": "string",
-                        "description": "Output zip path. Defaults to ./dist/agent-stack-init-claude-chat-skill.zip.",
-                    }
-                },
-            },
+            "name": "print_claude_chat_skill",
+            "description": "Print the Claude chat Skill markdown file for agent-stack-init.",
+            "inputSchema": {"type": "object", "properties": {}},
         },
     ]
 
@@ -87,11 +78,9 @@ def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         code, output = capture_stdout(bootstrap_agent_config.main, forwarded)
         return text_result(output.strip() or f"agent-stack-init exited with {code}", code != 0)
 
-    if name == "build_claude_chat_skill":
-        out = str(arguments.get("out") or "dist/agent-stack-init-claude-chat-skill.zip")
-        args = type("Args", (), {"out": out})()
-        code, output = capture_stdout(build_chat_skill, args)
-        return text_result(output.strip() or f"build-chat-skill exited with {code}", code != 0)
+    if name == "print_claude_chat_skill":
+        code, output = capture_stdout(print_chat_skill, object())
+        return text_result(output.strip() or f"print-chat-skill exited with {code}", code != 0)
 
     return text_result(f"Unknown tool: {name}", True)
 

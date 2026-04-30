@@ -1,3 +1,0 @@
-display_name: Agent Stack Init
-short_description: Scaffold commented agent config boilerplate.
-default_prompt: Set up an editable agent configuration stack for this project.
