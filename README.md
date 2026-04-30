@@ -105,10 +105,20 @@ Available tools:
 - `init_agent_stack`: scaffold the config stack into a local folder.
 - `print_claude_chat_skill`: print the Claude chat Skill markdown.
 
+Claude Desktop does not expose a Claude Code-style current project directory to
+MCP servers. The model must fill `target` with the actual project directory. If
+you do not provide one, Claude should ask for it before using the tool.
+
 After install, restart Claude Desktop and ask:
 
 ```text
-Use agent-stack-init to initialize /path/to/my/project.
+Use agent-stack-init to initialize /Users/me/code/my-project.
+```
+
+Or:
+
+```text
+Use agent-stack-init to initialize my project. The project directory is /Users/me/code/my-project.
 ```
 
 If Claude Desktop reports an MCP validation error, update and reinstall:

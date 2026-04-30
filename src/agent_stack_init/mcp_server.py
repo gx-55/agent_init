@@ -6,6 +6,7 @@ import contextlib
 import io
 import json
 import sys
+from pathlib import Path
 from typing import Any
 
 from . import __version__
@@ -30,6 +31,20 @@ def text_result(text: str, is_error: bool = False) -> dict[str, Any]:
     return {"content": [{"type": "text", "text": text}], "isError": is_error}
 
 
+def resolve_target(arguments: dict[str, Any]) -> Path:
+    raw_target = str(arguments.get("target") or "").strip()
+    if not raw_target:
+        raise ValueError(
+            "Missing required argument `target`. Ask the user for the project directory, then call this tool with that absolute path."
+        )
+    target = Path(raw_target).expanduser()
+    if not target.is_absolute():
+        raise ValueError(
+            f"`target` must be an absolute path. Got `{raw_target}`. Ask the user for the full project directory."
+        )
+    return target
+
+
 def capture_stdout(fn: Any, *args: Any, **kwargs: Any) -> tuple[int, str]:
     buffer = io.StringIO()
     with contextlib.redirect_stdout(buffer):
@@ -41,13 +56,13 @@ def tool_schemas() -> list[dict[str, Any]]:
     return [
         {
             "name": "init_agent_stack",
-            "description": "Scaffold the commented Claude/Codex agent configuration stack into a local project directory.",
+            "description": "Scaffold the commented Claude/Codex agent configuration stack into a local project directory. Before calling this tool, fill `target` with the user's actual project directory. If the user did not provide a directory, ask for it instead of guessing.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
                     "target": {
                         "type": "string",
-                        "description": "Local project directory to initialize. Defaults to the current directory.",
+                        "description": "Required absolute local project directory to initialize, for example `/Users/you/code/my-project`. Do not omit or use a relative path.",
                     },
                     "project_name": {
                         "type": "string",
@@ -63,6 +78,7 @@ def tool_schemas() -> list[dict[str, Any]]:
                         "default": False,
                     },
                 },
+                "required": ["target"],
             },
         },
         {
@@ -75,7 +91,11 @@ def tool_schemas() -> list[dict[str, Any]]:
 
 def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name == "init_agent_stack":
-        forwarded = ["--target", str(arguments.get("target") or ".")]
+        try:
+            target = resolve_target(arguments)
+        except ValueError as exc:
+            return text_result(str(exc), True)
+        forwarded = ["--target", str(target)]
         if arguments.get("project_name"):
             forwarded.extend(["--project-name", str(arguments["project_name"])])
         if arguments.get("domain"):
@@ -83,7 +103,9 @@ def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if arguments.get("force"):
             forwarded.append("--force")
         code, output = capture_stdout(bootstrap_agent_config.main, forwarded)
-        return text_result(output.strip() or f"agent-stack-init exited with {code}", code != 0)
+        detail = output.strip() or f"agent-stack-init exited with {code}"
+        message = f"Target resolved to: {target}\n\n{detail}"
+        return text_result(message, code != 0)
 
     if name == "print_claude_chat_skill":
         code, output = capture_stdout(print_chat_skill, object())
@@ -128,7 +150,11 @@ def handle(message: dict[str, Any]) -> None:
             log("Ignoring tools/call request without a valid JSON-RPC id.")
             return
         params = message.get("params") or {}
-        result = call_tool(str(params.get("name") or ""), params.get("arguments") or {})
+        try:
+            result = call_tool(str(params.get("name") or ""), params.get("arguments") or {})
+        except Exception as exc:
+            log(f"Tool call failed: {exc}")
+            result = text_result(f"Tool call failed: {exc}", True)
         send({"jsonrpc": "2.0", "id": msg_id, "result": result})
         return
 
