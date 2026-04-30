@@ -89,18 +89,38 @@ Use agent-stack-init to initialize /path/to/my/project.
 
 ## Claude Code
 
-The installer adds:
+The Claude Code command line is still a first-class part of this package.
 
-```text
-/agent-stack-init
-/new-agent-project
+The repo does not keep `.claude/commands/` checked in anymore because those are
+generated files. Instead, install them onto your machine with:
+
+```bash
+agent-stack-init install-claude-commands
 ```
 
-Use:
+or as part of the full install:
+
+```bash
+agent-stack-init install
+```
+
+That writes:
+
+```text
+~/.claude/commands/agent-stack-init.md
+~/.claude/commands/new-agent-project.md
+```
+
+After restarting Claude Code, use:
 
 ```text
 /agent-stack-init "Short project description"
+/new-agent-project my-new-app "Short project description"
 ```
+
+Generated projects also receive project-local command files under
+`.claude/commands/`, so `/project:agent-stack-init` works inside initialized
+repos when Claude Code supports project command namespaces.
 
 ## Claude Chat Skill
 
