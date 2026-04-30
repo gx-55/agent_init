@@ -111,6 +111,20 @@ After install, restart Claude Desktop and ask:
 Use agent-stack-init to initialize /path/to/my/project.
 ```
 
+If Claude Desktop reports an MCP validation error, update and reinstall:
+
+```bash
+pipx upgrade agent-stack-init
+agent-stack-init install-claude-desktop
+```
+
+If you used the installer fallback instead of `pipx`:
+
+```bash
+export AGENT_STACK_INIT_REPO_URL="https://github.com/gx-55/agent_init.git"
+curl -fsSL https://raw.githubusercontent.com/gx-55/agent_init/main/install.sh | bash
+```
+
 ## Claude Code
 
 The Claude Code command line is still a first-class part of this package.

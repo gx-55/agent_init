@@ -19,6 +19,14 @@ def send(message: dict[str, Any]) -> None:
     sys.stdout.flush()
 
 
+def log(message: str) -> None:
+    print(message, file=sys.stderr, flush=True)
+
+
+def valid_id(value: Any) -> bool:
+    return isinstance(value, (str, int, float)) and not isinstance(value, bool)
+
+
 def text_result(text: str, is_error: bool = False) -> dict[str, Any]:
     return {"content": [{"type": "text", "text": text}], "isError": is_error}
 
@@ -88,8 +96,12 @@ def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
 def handle(message: dict[str, Any]) -> None:
     method = message.get("method")
     msg_id = message.get("id")
+    has_valid_id = valid_id(msg_id)
 
     if method == "initialize":
+        if not has_valid_id:
+            log("Ignoring initialize request without a valid JSON-RPC id.")
+            return
         send(
             {
                 "jsonrpc": "2.0",
@@ -104,27 +116,30 @@ def handle(message: dict[str, Any]) -> None:
         return
 
     if method == "tools/list":
+        if not has_valid_id:
+            log("Ignoring tools/list request without a valid JSON-RPC id.")
+            return
         send({"jsonrpc": "2.0", "id": msg_id, "result": {"tools": tool_schemas()}})
         return
 
     if method == "tools/call":
+        if not has_valid_id:
+            log("Ignoring tools/call request without a valid JSON-RPC id.")
+            return
         params = message.get("params") or {}
         result = call_tool(str(params.get("name") or ""), params.get("arguments") or {})
         send({"jsonrpc": "2.0", "id": msg_id, "result": result})
         return
 
     if method == "ping":
+        if not has_valid_id:
+            return
         send({"jsonrpc": "2.0", "id": msg_id, "result": {}})
         return
 
-    if msg_id is not None:
-        send(
-            {
-                "jsonrpc": "2.0",
-                "id": msg_id,
-                "error": {"code": -32601, "message": f"Method not found: {method}"},
-            }
-        )
+    if has_valid_id:
+        log(f"Ignoring unsupported MCP method: {method}")
+        send({"jsonrpc": "2.0", "id": msg_id, "result": {}})
 
 
 def main() -> int:
@@ -132,19 +147,20 @@ def main() -> int:
         if not line.strip():
             continue
         try:
-            handle(json.loads(line))
+            decoded = json.loads(line)
+            if isinstance(decoded, list):
+                for message in decoded:
+                    if isinstance(message, dict):
+                        handle(message)
+                    else:
+                        log(f"Ignoring non-object MCP batch item: {message!r}")
+            elif isinstance(decoded, dict):
+                handle(decoded)
+            else:
+                log(f"Ignoring non-object MCP message: {decoded!r}")
         except Exception as exc:  # pragma: no cover - defensive server boundary
-            send(
-                {
-                    "jsonrpc": "2.0",
-                    "id": None,
-                    "error": {
-                        "code": -32603,
-                        "message": str(exc),
-                        "data": traceback.format_exc(),
-                    },
-                }
-            )
+            log(f"agent-stack-init MCP server ignored invalid input: {exc}")
+            log(traceback.format_exc())
     return 0
 
 
