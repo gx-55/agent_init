@@ -20,13 +20,27 @@ fi
 if command -v pipx >/dev/null 2>&1; then
   pipx install --force "$repo_dir"
 else
-  python3 -m pip install --user --upgrade "$repo_dir"
+  install_home="${AGENT_STACK_INIT_HOME:-$HOME/.local/share/agent-stack-init}"
+  venv_dir="$install_home/venv"
+  bin_dir="$HOME/.local/bin"
+
+  printf 'pipx not found. Installing into private virtualenv: %s\n' "$venv_dir"
+  python3 -m venv "$venv_dir"
+  "$venv_dir/bin/python" -m pip install --upgrade pip
+  "$venv_dir/bin/python" -m pip install --upgrade "$repo_dir"
+  mkdir -p "$bin_dir"
+  ln -sf "$venv_dir/bin/agent-stack-init" "$bin_dir/agent-stack-init"
+  printf 'Linked CLI to %s/agent-stack-init\n' "$bin_dir"
 fi
 
 if command -v agent-stack-init >/dev/null 2>&1; then
   agent-stack-init install
 elif [[ -x "$HOME/.local/bin/agent-stack-init" ]]; then
   "$HOME/.local/bin/agent-stack-init" install
+elif [[ -x "${AGENT_STACK_INIT_HOME:-$HOME/.local/share/agent-stack-init}/venv/bin/agent-stack-init" ]]; then
+  "${AGENT_STACK_INIT_HOME:-$HOME/.local/share/agent-stack-init}/venv/bin/agent-stack-init" install
 else
-  python3 -m agent_stack_init.cli install
+  printf 'agent-stack-init installed, but the CLI was not found on PATH.\n' >&2
+  printf 'Try: ~/.local/bin/agent-stack-init install\n' >&2
+  exit 1
 fi

@@ -17,10 +17,12 @@ It generates a commented agent configuration stack for a target project:
 
 ## Install
 
-From GitHub:
+Recommended on macOS/Homebrew Python:
 
 ```bash
-python3 -m pip install --user "git+https://github.com/gx-55/agent_init.git"
+brew install pipx
+pipx ensurepath
+pipx install "git+https://github.com/gx-55/agent_init.git"
 ```
 
 Then install local integrations:
@@ -29,10 +31,32 @@ Then install local integrations:
 agent-stack-init install
 ```
 
-If your Python user bin is not on `PATH`, run the command by full path:
+If your shell has not picked up the new PATH yet, either restart the terminal or
+run:
 
 ```bash
-~/Library/Python/3.9/bin/agent-stack-init install
+~/.local/bin/agent-stack-init install
+```
+
+One-command source install:
+
+```bash
+export AGENT_STACK_INIT_REPO_URL="https://github.com/gx-55/agent_init.git"
+curl -fsSL https://raw.githubusercontent.com/gx-55/agent_init/main/install.sh | bash
+```
+
+The installer uses `pipx` when available. If `pipx` is not installed, it creates
+a private virtualenv under `~/.local/share/agent-stack-init/venv` and links the
+CLI to `~/.local/bin/agent-stack-init`. It does not use `pip install --user`, so
+it avoids PEP 668 / externally-managed Python errors.
+
+Manual virtualenv fallback:
+
+```bash
+python3 -m venv ~/.local/share/agent-stack-init/venv
+~/.local/share/agent-stack-init/venv/bin/python -m pip install \
+  "git+https://github.com/gx-55/agent_init.git"
+~/.local/share/agent-stack-init/venv/bin/agent-stack-init install
 ```
 
 ## What Install Does
